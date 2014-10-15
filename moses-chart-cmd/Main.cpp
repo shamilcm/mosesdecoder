@@ -60,6 +60,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "moses/Incremental.h"
 #include "moses/FF/StatefulFeatureFunction.h"
 #include "moses/FF/StatelessFeatureFunction.h"
+#include "moses/Syntax/S2T/Manager.h"
+#include "moses/Syntax/S2T/ParserCallback.h"
+#include "moses/Syntax/S2T/Parsers/CYKPlusParser/CYKPlusParser.h"
+#include "moses/Syntax/S2T/Parsers/Scope3Parser/Parser.h"
 
 #include "util/usage.hh"
 #include "util/exception.hh"
@@ -92,11 +96,44 @@ public:
     delete m_source;
   }
 
+  template<typename Parser>
+  void DecodeS2T() {
+    const StaticData &staticData = StaticData::Instance();
+    Syntax::S2T::Manager<Parser> manager(*m_source);
+    manager.Decode();
+    // 1-best
+    const Syntax::SHyperedge *best = manager.GetBestSHyperedge();
+    m_ioWrapper.OutputBestHypo(best, m_source->GetTranslationId());
+    // n-best
+    if (staticData.GetNBestSize() > 0) {
+      Syntax::KBestExtractor::KBestVec nBestList;
+      manager.ExtractKBest(staticData.GetNBestSize(), nBestList,
+                           staticData.GetDistinctNBest());
+      m_ioWrapper.OutputNBestList(nBestList, m_source->GetTranslationId());
+    }
+  }
+
   void Run() {
     const StaticData &staticData = StaticData::Instance();
     const size_t translationId = m_source->GetTranslationId();
 
     VERBOSE(2,"\nTRANSLATING(" << translationId << "): " << *m_source);
+
+    if (staticData.UseS2TDecoder()) {
+      S2TParsingAlgorithm algorithm = staticData.GetS2TParsingAlgorithm();
+      if (algorithm == RecursiveCYKPlus) {
+        typedef Syntax::S2T::EagerParserCallback Callback;
+        typedef Syntax::S2T::CYKPlusParser<Callback> Parser;
+        DecodeS2T<Parser>();
+      } else if (algorithm == Scope3) {
+        typedef Syntax::S2T::StandardParserCallback Callback;
+        typedef Syntax::S2T::Scope3Parser<Callback> Parser;
+        DecodeS2T<Parser>();
+      } else {
+        UTIL_THROW2("ERROR: unhandled S2T parsing algorithm");
+      }
+      return;
+    }
 
     if (staticData.GetSearchAlgorithm() == ChartIncremental) {
       Incremental::Manager manager(*m_source);
