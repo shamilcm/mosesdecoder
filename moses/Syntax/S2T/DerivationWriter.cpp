@@ -44,9 +44,13 @@ void DerivationWriter::WriteLine(const SHyperedge &shyperedge,
 
   // Source RHS symbols.
   for (std::size_t i = 0; i < shyperedge.tail.size(); ++i) {
-    const SVertex *child = shyperedge.tail[i];
+    const Word &symbol = shyperedge.tail[i]->pvertex->symbol;
     out << " ";
-    WriteSymbol(child->pvertex->symbol, out);
+    if (symbol.IsNonTerminal()) {
+      out << "[X]";
+    } else {
+      WriteSymbol(symbol, out);
+    }
   }
   out << " |||";
 
