@@ -10,19 +10,22 @@ namespace S2T
 {
 
 template<typename Callback>
-CYKPlusParser<Callback>::CYKPlusParser(PChart &chart, const RuleTrie &trie,
-                                       std::size_t maxChartSpan)
-  : Parser<Callback>(chart)
-  , m_ruleTable(trie)
-  , m_maxChartSpan(maxChartSpan)
-  , m_callback(NULL)
+RecursiveCYKPlusParser<Callback>::RecursiveCYKPlusParser(
+    PChart &chart,
+    const RuleTrie &trie,
+    std::size_t maxChartSpan)
+    : Parser<Callback>(chart)
+    , m_ruleTable(trie)
+    , m_maxChartSpan(maxChartSpan)
+    , m_callback(NULL)
 {
   m_hyperedge.head = 0;
 }
 
 template<typename Callback>
-void CYKPlusParser<Callback>::EnumerateHyperedges(const WordsRange &range,
-                                                  Callback &callback)
+void RecursiveCYKPlusParser<Callback>::EnumerateHyperedges(
+    const WordsRange &range,
+    Callback &callback)
 {
   const std::size_t start = range.GetStartPos();
   const std::size_t end = range.GetEndPos();
@@ -45,7 +48,7 @@ void CYKPlusParser<Callback>::EnumerateHyperedges(const WordsRange &range,
 // search all possible nonterminal extensions of a partial rule (pointed at by node) for a given span (StartPos, endPos).
 // recursively try to expand partial rules into full rules up to m_lastPos.
 template<typename Callback>
-void CYKPlusParser<Callback>::GetNonTerminalExtension(
+void RecursiveCYKPlusParser<Callback>::GetNonTerminalExtension(
     const RuleTrie::Node &node,
     size_t start,
     size_t end) {
@@ -80,7 +83,7 @@ void CYKPlusParser<Callback>::GetNonTerminalExtension(
 // search all possible terminal extensions of a partial rule (pointed at by node) at a given position
 // recursively try to expand partial rules into full rules up to m_lastPos.
 template<typename Callback>
-void CYKPlusParser<Callback>::GetTerminalExtension(
+void RecursiveCYKPlusParser<Callback>::GetTerminalExtension(
     const RuleTrie::Node &node,
     std::size_t start,
     std::size_t end) {
@@ -121,8 +124,10 @@ void CYKPlusParser<Callback>::GetTerminalExtension(
 
 // if a (partial) rule matches, add it to list completed rules (if non-unary and non-empty), and try find expansions that have this partial rule as prefix.
 template<typename Callback>
-void CYKPlusParser<Callback>::AddAndExtend(
-    const RuleTrie::Node &node, std::size_t end, PVertex &vertex) {
+void RecursiveCYKPlusParser<Callback>::AddAndExtend(
+    const RuleTrie::Node &node,
+    std::size_t end,
+    PVertex &vertex) {
   m_hyperedge.tail.push_back(&vertex);
 
   // add target phrase collection (except if rule is empty or unary)
@@ -151,7 +156,7 @@ void CYKPlusParser<Callback>::AddAndExtend(
 }
 
 template<typename Callback>
-bool CYKPlusParser<Callback>::IsNonLexicalUnary(
+bool RecursiveCYKPlusParser<Callback>::IsNonLexicalUnary(
     const PHyperedge &hyperedge) const
 {
   return hyperedge.tail.size() == 1 &&

@@ -62,7 +62,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "moses/FF/StatelessFeatureFunction.h"
 #include "moses/Syntax/S2T/Manager.h"
 #include "moses/Syntax/S2T/ParserCallback.h"
-#include "moses/Syntax/S2T/Parsers/CYKPlusParser/CYKPlusParser.h"
+#include "moses/Syntax/S2T/Parsers/RecursiveCYKPlusParser/RecursiveCYKPlusParser.h"
 #include "moses/Syntax/S2T/Parsers/Scope3Parser/Parser.h"
 
 #include "util/usage.hh"
@@ -132,7 +132,7 @@ public:
       S2TParsingAlgorithm algorithm = staticData.GetS2TParsingAlgorithm();
       if (algorithm == RecursiveCYKPlus) {
         typedef Syntax::S2T::EagerParserCallback Callback;
-        typedef Syntax::S2T::CYKPlusParser<Callback> Parser;
+        typedef Syntax::S2T::RecursiveCYKPlusParser<Callback> Parser;
         DecodeS2T<Parser>();
       } else if (algorithm == Scope3) {
         typedef Syntax::S2T::StandardParserCallback Callback;

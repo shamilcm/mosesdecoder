@@ -14,15 +14,15 @@ namespace S2T
 {
 
 template<typename Callback>
-class CYKPlusParser : public Parser<Callback>
+class RecursiveCYKPlusParser : public Parser<Callback>
 {
  public:
   typedef Parser<Callback> Base;
   typedef RuleTrieCYKPlus RuleTrie;
 
-  CYKPlusParser(PChart &, const RuleTrie &, std::size_t);
+  RecursiveCYKPlusParser(PChart &, const RuleTrie &, std::size_t);
 
-  ~CYKPlusParser() {}
+  ~RecursiveCYKPlusParser() {}
 
   void EnumerateHyperedges(const WordsRange &, Callback &);
 
@@ -49,4 +49,4 @@ class CYKPlusParser : public Parser<Callback>
 }  // namespace Moses
 
 // Implementation
-#include "CYKPlusParser-inl.h"
+#include "RecursiveCYKPlusParser-inl.h"
