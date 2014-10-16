@@ -50,6 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "moses/FF/TreeStructureFeature.h"
 #include "moses/PP/TreeStructurePhraseProperty.h"
 #include "moses/Syntax/PVertex.h"
+#include "moses/Syntax/S2T/DerivationWriter.h"
 #include "util/exception.hh"
 
 using namespace std;
@@ -488,6 +489,19 @@ void IOWrapper::OutputDetailedTranslationReport(
   OutputTranslationOptions(out, applicationContext, applied, sentence, translationId);
   UTIL_THROW_IF2(m_detailOutputCollector == NULL,
                   "No ouput file for detailed reports specified");
+  m_detailOutputCollector->Write(translationId, out.str());
+}
+
+void IOWrapper::OutputDetailedTranslationReport(const Syntax::SHyperedge *best,
+                                                long translationId)
+{
+  if (best == NULL) {
+    return;
+  }
+  std::ostringstream out;
+  Syntax::S2T::DerivationWriter::Write(*best, translationId, out);
+  UTIL_THROW_IF2(m_detailOutputCollector == NULL,
+		  "No ouput file for detailed reports specified");
   m_detailOutputCollector->Write(translationId, out.str());
 }
 
