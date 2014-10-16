@@ -1124,6 +1124,18 @@ void IOWrapper::OutputUnknowns(const std::vector<Moses::Phrase*> &unknowns,
   m_unknownsCollector->Write(translationId, out.str());
 }
 
+void IOWrapper::OutputUnknowns(const std::set<Moses::Word> &unknowns,
+                               long translationId)
+{
+  std::ostringstream out;
+  for (std::set<Moses::Word>::const_iterator p = unknowns.begin();
+       p != unknowns.end(); ++p) {
+    out << *p;
+  }
+  out << std::endl;
+  m_unknownsCollector->Write(translationId, out.str());
+}
+
 size_t IOWrapper::OutputAlignment(Alignments &retAlign, const Moses::ChartHypothesis *hypo, size_t startTarget)
 {
   size_t totalTargetSize = 0;

@@ -150,6 +150,7 @@ public:
 
   void OutputAlignment(size_t translationId , const Moses::ChartHypothesis *hypo);
   void OutputUnknowns(const std::vector<Moses::Phrase*> &, long);
+  void OutputUnknowns(const std::set<Moses::Word> &, long);
 
   static void FixPrecision(std::ostream &, size_t size=3);
 };

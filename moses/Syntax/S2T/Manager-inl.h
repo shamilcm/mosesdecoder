@@ -104,13 +104,13 @@ void Manager<Parser>::InitializeParsers(PChart &pchart,
 
   // Check for OOVs and synthesize an additional rule trie + parser if
   // necessary.
-  std::set<Word> oovs;
+  m_oovs.clear();
   std::size_t maxOovWidth = 0;
-  FindOovs(pchart, oovs, maxOovWidth);
-  if (!oovs.empty()) {
+  FindOovs(pchart, m_oovs, maxOovWidth);
+  if (!m_oovs.empty()) {
     // FIXME Add a hidden RuleTableFF for unknown words(?)
     OovHandler<typename Parser::RuleTrie> oovHandler(*ffs[0]);
-    m_oovRuleTrie = oovHandler.SynthesizeRuleTrie(oovs.begin(), oovs.end());
+    m_oovRuleTrie = oovHandler.SynthesizeRuleTrie(m_oovs.begin(), m_oovs.end());
     // Create a parser for the OOV rule trie.
     boost::shared_ptr<Parser> parser(
         new Parser(pchart, *m_oovRuleTrie, maxOovWidth));

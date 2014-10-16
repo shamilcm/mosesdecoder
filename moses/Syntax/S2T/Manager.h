@@ -41,6 +41,8 @@ class Manager
       std::vector<boost::shared_ptr<KBestExtractor::Derivation> > &kBestList,
       bool onlyDistinct=false) const;
 
+  const std::set<Word> &GetUnknownWords() const { return m_oovs; }
+
  private:
   void FindOovs(const PChart &, std::set<Word> &, std::size_t);
 
@@ -56,6 +58,7 @@ class Manager
   const InputType &m_source;
   PChart m_pchart;
   SChart m_schart;
+  std::set<Word> m_oovs;
   boost::shared_ptr<typename Parser::RuleTrie> m_oovRuleTrie;
   std::vector<boost::shared_ptr<Parser> > m_parsers;
 };

@@ -116,6 +116,10 @@ public:
     if (staticData.IsDetailedTranslationReportingEnabled()) {
       m_ioWrapper.OutputDetailedTranslationReport(best, translationId);
     }
+    // Write unknown words file (-output-unknowns option)
+    if (!staticData.GetOutputUnknownsFile().empty()) {
+      m_ioWrapper.OutputUnknowns(manager.GetUnknownWords(), translationId);
+    }
   }
 
   void Run() {
