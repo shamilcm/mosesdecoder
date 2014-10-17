@@ -1161,7 +1161,10 @@ std::map<std::string, std::string> StaticData::OverrideFeatureNames()
 	}
 
   if (m_useS2TDecoder) {
-    // Automatically override PhraseDictionary{Memory,Scope3}
+    // Automatically override PhraseDictionary{Memory,Scope3}.  This will
+    // have to change if the FF parameters diverge too much in the future,
+    // but for now it makes switching between the old and new decoders much
+    // more convenient.
     ret["PhraseDictionaryMemory"] = "RuleTable";
     ret["PhraseDictionaryScope3"] = "RuleTable";
   }
