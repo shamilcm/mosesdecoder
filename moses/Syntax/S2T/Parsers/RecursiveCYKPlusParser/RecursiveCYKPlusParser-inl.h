@@ -31,7 +31,7 @@ void RecursiveCYKPlusParser<Callback>::EnumerateHyperedges(
   const std::size_t end = range.GetEndPos();
   m_callback = &callback;
   const RuleTrie::Node &rootNode = m_ruleTable.GetRootNode();
-  m_maxEnd = std::min(Base::m_chart.cells.size()-1, start+m_maxChartSpan-1);
+  m_maxEnd = std::min(Base::m_chart.GetWidth()-1, start+m_maxChartSpan-1);
   m_hyperedge.tail.clear();
 
   // Find all hyperedges where the first incoming vertex is a terminal covering
@@ -50,12 +50,12 @@ void RecursiveCYKPlusParser<Callback>::EnumerateHyperedges(
 template<typename Callback>
 void RecursiveCYKPlusParser<Callback>::GetNonTerminalExtension(
     const RuleTrie::Node &node,
-    size_t start,
-    size_t end) {
+    std::size_t start,
+    std::size_t end) {
 
   // target non-terminal labels for the span
-  PChart::Cell::NMap &vertexMap =
-      Base::m_chart.cells[start][end].nonTerminalVertices;
+  const PChart::Cell::NMap &vertexMap =
+      Base::m_chart.GetCell(start, end).nonTerminalVertices;
   if (vertexMap.IsEmpty()) {
     return;
   }
@@ -88,16 +88,16 @@ void RecursiveCYKPlusParser<Callback>::GetTerminalExtension(
     std::size_t start,
     std::size_t end) {
 
-  PChart::Cell::TMap &vertexMap =
-      Base::m_chart.cells[start][end].terminalVertices;
+  const PChart::Cell::TMap &vertexMap =
+      Base::m_chart.GetCell(start, end).terminalVertices;
   if (vertexMap.empty()) {
     return;
   }
 
-  for (PChart::Cell::TMap::iterator p = vertexMap.begin();
+  for (PChart::Cell::TMap::const_iterator p = vertexMap.begin();
        p != vertexMap.end(); ++p) {
     const Word &terminal = p->first;
-    PVertex &vertex = p->second;
+    const PVertex &vertex = p->second;
 
     const RuleTrie::Node::SymbolMap &terminals = node.GetTerminalMap();
 
@@ -127,8 +127,9 @@ template<typename Callback>
 void RecursiveCYKPlusParser<Callback>::AddAndExtend(
     const RuleTrie::Node &node,
     std::size_t end,
-    PVertex &vertex) {
-  m_hyperedge.tail.push_back(&vertex);
+    const PVertex &vertex) {
+  // FIXME Sort out const-ness.
+  m_hyperedge.tail.push_back(const_cast<PVertex *>(&vertex));
 
   // add target phrase collection (except if rule is empty or unary)
   const TargetPhraseCollection &tpc = node.GetTargetPhraseCollection();

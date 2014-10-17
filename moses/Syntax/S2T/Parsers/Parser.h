@@ -7,7 +7,7 @@ namespace Syntax
 namespace S2T
 {
 
-struct PChart;
+class PChart;
 
 // Base class for parsers.
 template<typename Callback>
@@ -17,6 +17,7 @@ class Parser
   typedef Callback CallbackType;
 
   Parser(PChart &chart) : m_chart(chart) {}
+
   virtual ~Parser() {}
 
   virtual void EnumerateHyperedges(const WordsRange &, Callback &) = 0;

@@ -25,7 +25,7 @@ namespace S2T
 typedef std::vector<
           std::vector<
             std::vector<
-              std::vector<PVertex *> > > > TailLattice;
+              std::vector<const PVertex *> > > > TailLattice;
 
 }  // namespace S2T
 }  // namespace Syntax

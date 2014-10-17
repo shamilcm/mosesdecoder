@@ -21,7 +21,6 @@ void TailLatticeBuilder::Build(
   ExtendAndClear(key, ranges, lattice, checkTable);
 
   const int spanStart = ranges.front().minStart;
-  const int spanEnd = ranges.back().maxEnd;
 
   const RuleTrieScope3::Node *utrieNode = key.back()->m_node;
 
@@ -52,7 +51,8 @@ void TailLatticeBuilder::Build(
         for (std::vector<Word>::const_iterator p = labelVec.begin();
              p != labelVec.end(); ++p, ++q) {
           const Word &label = *p;
-          PVertex *v = m_chart.cells[s][e].nonTerminalVertices.Find(label);
+          const PVertex *v =
+              m_chart.GetCell(s, e).nonTerminalVertices.Find(label);
           lattice[offset][nonTermIndex+1][width].push_back(v);
           *q = (*q || static_cast<bool>(v));
         }

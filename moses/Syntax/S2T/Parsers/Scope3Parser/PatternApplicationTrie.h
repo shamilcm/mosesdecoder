@@ -21,7 +21,7 @@ typedef std::vector<const PatternApplicationTrie*> PatternApplicationKey;
 struct PatternApplicationTrie {
  public:
   PatternApplicationTrie(int start, int end, const RuleTrieScope3::Node &node,
-                         PVertex *pvertex, PatternApplicationTrie *parent)
+                         const PVertex *pvertex, PatternApplicationTrie *parent)
     : m_start(start)
     , m_end(end)
     , m_node(&node)
@@ -53,7 +53,7 @@ struct PatternApplicationTrie {
   int m_start;
   int m_end;
   const RuleTrieScope3::Node *m_node;
-  PVertex *m_pvertex;
+  const PVertex *m_pvertex;
   PatternApplicationTrie *m_parent;
   std::vector<PatternApplicationTrie*> m_children;
   mutable const PatternApplicationTrie *m_highestTerminalNode;

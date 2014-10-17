@@ -145,9 +145,9 @@ void PatternApplicationTrie::Extend(const RuleTrieScope3::Node &node,
     if (q == sentMap.end()) {
       continue;
     }
-    for (std::vector<PVertex *>::const_iterator r = q->second.begin();
+    for (std::vector<const PVertex *>::const_iterator r = q->second.begin();
          r != q->second.end(); ++r) {
-      PVertex *v = *r;
+      const PVertex *v = *r;
       std::size_t start = v->span.GetStartPos();
       std::size_t end = v->span.GetEndPos();
       if (start == (std::size_t)minPos ||

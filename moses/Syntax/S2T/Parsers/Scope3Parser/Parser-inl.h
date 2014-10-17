@@ -117,7 +117,7 @@ void Scope3Parser<Callback>::Init()
 template<typename Callback>
 void Scope3Parser<Callback>::InitRuleApplicationVector()
 {
-  std::size_t length = Base::m_chart.cells.size();
+  std::size_t length = Base::m_chart.GetWidth();
   m_patSpans.resize(length);
   for (std::size_t start = 0; start < length; ++start) {
     std::size_t maxSpan = length-start;
@@ -128,13 +128,15 @@ void Scope3Parser<Callback>::InitRuleApplicationVector()
 template<typename Callback>
 void Scope3Parser<Callback>::FillSentenceMap(SentenceMap &sentMap)
 {
-  for (std::size_t i = 0; i < Base::m_chart.cells.size(); ++i) {
-    std::vector<PChart::Cell> &inner = Base::m_chart.cells[i];
-    for (std::size_t j = 0; j < inner.size(); ++j) {
-      PChart::Cell::TMap &map = inner[j].terminalVertices;
-      for (PChart::Cell::TMap::iterator p = map.begin(); p != map.end(); ++p) {
+  typedef PChart::Cell Cell;
+
+  const std::size_t width = Base::m_chart.GetWidth();
+  for (std::size_t i = 0; i < width; ++i) {
+    for (std::size_t j = i; j < width; ++j) {
+      const Cell::TMap &map = Base::m_chart.GetCell(i, j).terminalVertices;
+      for (Cell::TMap::const_iterator p = map.begin(); p != map.end(); ++p) {
         const Word &terminal = p->first;
-        PVertex &v = p->second;
+        const PVertex &v = p->second;
         sentMap[terminal].push_back(&v);
       }
     }
@@ -150,8 +152,8 @@ void Scope3Parser<Callback>::RecordPatternApplicationSpans(
     int s2 = -1;
     int e1 = -1;
     int e2 = -1;
-    patNode.DetermineStartRange(Base::m_chart.cells.size(), s1, s2);
-    patNode.DetermineEndRange(Base::m_chart.cells.size(), e1, e2);
+    patNode.DetermineStartRange(Base::m_chart.GetWidth(), s1, s2);
+    patNode.DetermineEndRange(Base::m_chart.GetWidth(), e1, e2);
 
     int minSpan = patNode.Depth();
 

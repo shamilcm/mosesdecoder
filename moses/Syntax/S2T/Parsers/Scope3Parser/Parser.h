@@ -26,6 +26,9 @@ public:
   typedef Parser<Callback> Base;
   typedef RuleTrieScope3 RuleTrie;
 
+  // TODO Make this configurable?
+  static bool RequiresCompressedChart() { return false; }
+
   Scope3Parser(PChart &, const RuleTrie &, std::size_t);
 
   ~Scope3Parser();

@@ -44,8 +44,9 @@ class TailLatticeSearcher
 
     if (patNode->IsTerminalNode()) {
       const int width = range.minEnd - range.minStart + 1;
-      PVertex *v = m_lattice[offset][0][width][0];
-      m_hyperedge.tail.push_back(v);
+      const PVertex *v = m_lattice[offset][0][width][0];
+      // FIXME Sort out const-ness
+      m_hyperedge.tail.push_back(const_cast<PVertex*>(v));
       if (i == m_key.size()-1) {
         (*m_matchCB)(m_hyperedge);
       } else {
@@ -59,18 +60,19 @@ class TailLatticeSearcher
     const int minWidth = std::max(1, range.minEnd - absStart + 1);
     const int maxWidth = range.maxEnd - absStart + 1;
 
-    const std::vector<std::vector<PVertex *> > &innerVec =
+    const std::vector<std::vector<const PVertex *> > &innerVec =
         m_lattice[offset][nonTermIndex+1];
 
     std::size_t labelIndex = (*m_labels)[nonTermIndex];
 
     // Loop over all possible widths for this offset and index.
     for (std::size_t width = minWidth; width <= maxWidth; ++width) {
-      PVertex *v = innerVec[width][labelIndex];
+      const PVertex *v = innerVec[width][labelIndex];
       if (!v) {
         continue;
       }
-      m_hyperedge.tail.push_back(v);
+      // FIXME Sort out const-ness
+      m_hyperedge.tail.push_back(const_cast<PVertex*>(v));
       if (i == m_key.size()-1) {
         (*m_matchCB)(m_hyperedge);
       } else {

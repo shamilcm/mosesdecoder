@@ -28,22 +28,17 @@ namespace S2T
 template<typename Parser>
 Manager<Parser>::Manager(const InputType &source)
     : m_source(source)
+    , m_pchart(source.GetSize(), Parser::RequiresCompressedChart())
 {
 }
 
 template<typename Parser>
 void Manager<Parser>::InitializePChart(PChart &pchart)
 {
-  // Create cells.
-  pchart.cells.resize(m_source.GetSize());
-  for (std::size_t i = 0; i < m_source.GetSize(); ++i) {
-    pchart.cells[i].resize(m_source.GetSize());
-  }
   // Insert PVertex objects for source words
   for (std::size_t i = 0; i < m_source.GetSize(); ++i) {
     PVertex v(WordsRange(i,i), m_source.GetWord(i));
-    PChart::Cell::TMap::value_type x(v.symbol, v);
-    pchart.cells[i][i].terminalVertices.insert(x);
+    m_pchart.AddVertex(v);
   }
 }
 
@@ -60,7 +55,7 @@ void Manager<Parser>::InitializeSChart(const PChart &pchart, SChart &schart)
     const Word &terminal = m_source.GetWord(i);
     boost::shared_ptr<SVertex> v(new SVertex());
     v->best = 0;
-    const PChart::Cell::TMap &pmap = pchart.cells[i][i].terminalVertices;
+    const PChart::Cell::TMap &pmap = pchart.GetCell(i,i).terminalVertices;
     PChart::Cell::TMap::const_iterator p = pmap.find(terminal);
     assert(p != pmap.end());
     v->pvertex = &(p->second);
@@ -141,10 +136,10 @@ void Manager<Parser>::FindOovs(const PChart &pchart, std::set<Word> &oovs,
   maxOovWidth = 0;
   // Assume <s> and </s> have been added at sentence boundaries, so skip
   // cells starting at position 0 and ending at the last position.
-  for (std::size_t i = 1; i < pchart.cells.size()-1; ++i) {
-    for (std::size_t j = i; j < pchart.cells[i].size()-1; ++j) {
+  for (std::size_t i = 1; i < pchart.GetWidth()-1; ++i) {
+    for (std::size_t j = i; j < pchart.GetWidth()-1; ++j) {
       std::size_t width = j-i+1;
-      const PChart::Cell::TMap &map = pchart.cells[i][j].terminalVertices;
+      const PChart::Cell::TMap &map = pchart.GetCell(i,j).terminalVertices;
       for (PChart::Cell::TMap::const_iterator p = map.begin();
            p != map.end(); ++p) {
         const Word &word = p->first;
@@ -187,13 +182,13 @@ void Manager<Parser>::Decode()
   // Create a callback to process the PHyperedges produced by the parsers.
   typename Parser::CallbackType callback(m_schart, ruleLimit);
 
-  // Visit each cell of PChart in right-to-left bottom-up order.
+  // Visit each cell of PChart in right-to-left depth-first order.
   std::size_t size = m_source.GetSize();
   for (int start = size-1; start >= 0; --start) {
     for (std::size_t width = 1; width <= size-start; ++width) {
       std::size_t end = start + width - 1;
 
-      PChart::Cell &pcell = m_pchart.cells[start][end];
+      //PChart::Cell &pcell = m_pchart.GetCell(start, end);
       SChart::Cell &scell = m_schart.cells[start][end];
 
       WordsRange range(start, end);
@@ -228,8 +223,7 @@ void Manager<Parser>::Decode()
         // shouldn't) know about the contents of PChart and so creation of
         // the PVertex is deferred until this point.
         const Word &lhs = hyperedge->translation->GetTargetLHS();
-        hyperedge->head->pvertex =
-            pcell.nonTerminalVertices.Insert(lhs, PVertex(range, lhs));
+        hyperedge->head->pvertex = &m_pchart.AddVertex(PVertex(range, lhs));
         // END{HACK}
         buffers[lhs].push_back(hyperedge);
         ++count;

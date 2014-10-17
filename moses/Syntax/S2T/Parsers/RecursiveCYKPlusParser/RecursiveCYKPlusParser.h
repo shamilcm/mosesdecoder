@@ -20,6 +20,9 @@ class RecursiveCYKPlusParser : public Parser<Callback>
   typedef Parser<Callback> Base;
   typedef RuleTrieCYKPlus RuleTrie;
 
+  // TODO Make this configurable?
+  static bool RequiresCompressedChart() { return true; }
+
   RecursiveCYKPlusParser(PChart &, const RuleTrie &, std::size_t);
 
   ~RecursiveCYKPlusParser() {}
@@ -33,7 +36,7 @@ class RecursiveCYKPlusParser : public Parser<Callback>
   void GetNonTerminalExtension(const RuleTrie::Node &, std::size_t,
                                std::size_t);
 
-  void AddAndExtend(const RuleTrie::Node &, std::size_t, PVertex &);
+  void AddAndExtend(const RuleTrie::Node &, std::size_t, const PVertex &);
 
   bool IsNonLexicalUnary(const PHyperedge &) const;
 
