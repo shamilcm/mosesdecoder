@@ -1160,6 +1160,12 @@ std::map<std::string, std::string> StaticData::OverrideFeatureNames()
 		}
 	}
 
+  if (m_useS2TDecoder) {
+    // Automatically override PhraseDictionary{Memory,Scope3}
+    ret["PhraseDictionaryMemory"] = "RuleTable";
+    ret["PhraseDictionaryScope3"] = "RuleTable";
+  }
+
 	return ret;
 }
 

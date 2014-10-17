@@ -79,7 +79,8 @@ void Manager<Parser>::InitializeParsers(PChart &pchart,
   const std::vector<DecodeGraph*> &graphs =
     StaticData::Instance().GetDecodeGraphs();
 
-  assert(ffs.size() == graphs.size());
+  UTIL_THROW_IF2(ffs.size() != graphs.size(),
+                 "number of RuleTables does not match number of decode graphs");
 
   for (std::size_t i = 0; i < ffs.size(); ++i) {
     RuleTableFF *ff = ffs[i];
@@ -94,10 +95,7 @@ void Manager<Parser>::InitializeParsers(PChart &pchart,
     boost::shared_ptr<Parser> parser;
     typename Parser::RuleTrie *trie =
       dynamic_cast<typename Parser::RuleTrie*>(nonConstTable);
-    if (!trie) {
-      // FIXME
-      assert(false);
-    }
+    assert(trie);
     parser.reset(new Parser(pchart, *trie, maxChartSpan));
     m_parsers.push_back(parser);
   }
