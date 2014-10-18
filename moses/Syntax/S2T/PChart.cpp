@@ -1,5 +1,7 @@
 #include "PChart.h"
 
+#include "moses/FactorCollection.h"
+
 namespace Moses
 {
 namespace Syntax
@@ -14,14 +16,17 @@ PChart::PChart(std::size_t width, bool maintainCompressedChart)
     cells[i].resize(width);
   }
   if (maintainCompressedChart) {
-    m_compressed = new CompressedChart(width);
-    // TODO Initialize
+    m_compressedChart = new CompressedChart(width);
+    for (CompressedChart::iterator p = m_compressedChart->begin();
+         p != m_compressedChart->end(); ++p) {
+      p->resize(FactorCollection::Instance().GetNumNonTerminals());
+    }
   }
 }
 
 PChart::~PChart()
 {
-  delete m_compressed;
+  delete m_compressedChart;
 }
 
 }  // namespace S2T

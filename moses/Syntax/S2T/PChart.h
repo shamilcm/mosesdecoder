@@ -36,7 +36,7 @@ class PChart
     const PVertex *vertex;
   };
 
-  typedef std::vector<std::vector<CompressedItem> > CompressedRow;
+  typedef std::vector<std::vector<CompressedItem> > CompressedMatrix;
 
   PChart(std::size_t width, bool maintainCompressedChart);
 
@@ -50,30 +50,38 @@ class PChart
 
   // Insert the given PVertex and return a reference to the inserted object.
   PVertex &AddVertex(const PVertex &v) {
-    Cell &cell = cells[v.span.GetStartPos()][v.span.GetEndPos()];
+    const std::size_t start = v.span.GetStartPos();
+    const std::size_t end = v.span.GetEndPos();
+    Cell &cell = cells[start][end];
+    // If v is a terminal vertex add it to the cell's terminalVertices map.
     if (!v.symbol.IsNonTerminal()) {
       Cell::TMap::value_type x(v.symbol, v);
       std::pair<Cell::TMap::iterator, bool> ret =
           cell.terminalVertices.insert(x);
       return ret.first->second;
     }
+    // If v is a non-terminal vertex add it to the cell's nonTerminalVertices
+    // map and update the compressed chart (if enabled).
     std::pair<Cell::NMap::Iterator, bool> result =
         cell.nonTerminalVertices.Insert(v.symbol, v);
-    if (result.second && m_compressed) {
-      // TODO Update m_compressed
+    if (result.second && m_compressedChart) {
+      CompressedItem item;
+      item.end = end;
+      item.vertex = &(result.first->second);
+      (*m_compressedChart)[start][v.symbol[0]->GetId()].push_back(item);
     }
     return result.first->second;
   }
 
-  const CompressedRow &GetCompressedRow(std::size_t start) const {
-    return (*m_compressed)[start];
+  const CompressedMatrix &GetCompressedMatrix(std::size_t start) const {
+    return (*m_compressedChart)[start];
   }
 
  private:
-  typedef std::vector<CompressedRow> CompressedChart;
+  typedef std::vector<CompressedMatrix> CompressedChart;
 
   std::vector<std::vector<Cell> > cells;
-  CompressedChart *m_compressed;
+  CompressedChart *m_compressedChart;
 };
 
 }  // S2T

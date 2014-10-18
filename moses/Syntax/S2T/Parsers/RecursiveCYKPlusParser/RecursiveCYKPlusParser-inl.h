@@ -41,47 +41,44 @@ void RecursiveCYKPlusParser<Callback>::EnumerateHyperedges(
   // Find all hyperedges where the first incoming vertex is a non-terminal
   // covering [start,end-1].
   if (end > start) {
-    GetNonTerminalExtension(rootNode, start, end-1);
+    GetNonTerminalExtensions(rootNode, start, end-1, end-1);
   }
 }
 
-// search all possible nonterminal extensions of a partial rule (pointed at by node) for a given span (StartPos, endPos).
-// recursively try to expand partial rules into full rules up to m_lastPos.
+// Search for all extensions of a partial rule (pointed at by node) that begin
+// with a non-terminal over a span between [start,minEnd] and [start,maxEnd].
 template<typename Callback>
-void RecursiveCYKPlusParser<Callback>::GetNonTerminalExtension(
+void RecursiveCYKPlusParser<Callback>::GetNonTerminalExtensions(
     const RuleTrie::Node &node,
     std::size_t start,
-    std::size_t end) {
-
-  // target non-terminal labels for the span
-  const PChart::Cell::NMap &vertexMap =
-      Base::m_chart.GetCell(start, end).nonTerminalVertices;
-  if (vertexMap.IsEmpty()) {
-    return;
-  }
-
-  // non-terminal labels in phrase dictionary node
+    std::size_t minEnd,
+    std::size_t maxEnd) {
+  // Non-terminal labels in node's outgoing edge set.
   const RuleTrie::Node::SymbolMap &nonTermMap = node.GetNonTerminalMap();
 
-  // loop over possible expansions of the rule
+  // Compressed matrix from PChart.
+  const PChart::CompressedMatrix &matrix =
+      Base::m_chart.GetCompressedMatrix(start);
+
+  // Loop over possible expansions of the rule.
   RuleTrie::Node::SymbolMap::const_iterator p;
   RuleTrie::Node::SymbolMap::const_iterator p_end = nonTermMap.end();
   for (p = nonTermMap.begin(); p != p_end; ++p) {
-    // does it match possible source and target non-terminals?
-    const Word &targetNonTerm = p->first;
-
-    PVertex *q = vertexMap.Find(targetNonTerm);
-    if (!q) {
-      continue;
+    const Word &nonTerm = p->first;
+    const std::vector<PChart::CompressedItem> &items =
+        matrix[nonTerm[0]->GetId()];
+    for (std::vector<PChart::CompressedItem>::const_iterator q = items.begin();
+         q != items.end(); ++q) {
+      if (q->end >= minEnd && q->end <= maxEnd) {
+        const RuleTrie::Node &child = p->second;
+        AddAndExtend(child, q->end, *(q->vertex));
+      }
     }
-    // create new rule
-    const RuleTrie::Node &child = p->second;
-    AddAndExtend(child, end, *q);
   }
 }
 
-// search all possible terminal extensions of a partial rule (pointed at by node) at a given position
-// recursively try to expand partial rules into full rules up to m_lastPos.
+// Search for all extensions of a partial rule (pointed at by node) that begin
+// with a terminal over span [start,end].
 template<typename Callback>
 void RecursiveCYKPlusParser<Callback>::GetTerminalExtension(
     const RuleTrie::Node &node,
@@ -94,12 +91,12 @@ void RecursiveCYKPlusParser<Callback>::GetTerminalExtension(
     return;
   }
 
+  const RuleTrie::Node::SymbolMap &terminals = node.GetTerminalMap();
+
   for (PChart::Cell::TMap::const_iterator p = vertexMap.begin();
        p != vertexMap.end(); ++p) {
     const Word &terminal = p->first;
     const PVertex &vertex = p->second;
-
-    const RuleTrie::Node::SymbolMap &terminals = node.GetTerminalMap();
 
     // if node has small number of terminal edges, test word equality for each.
     if (terminals.size() < 5) {
@@ -109,11 +106,10 @@ void RecursiveCYKPlusParser<Callback>::GetTerminalExtension(
         if (word == terminal) {
           const RuleTrie::Node *child = & iter->second;
           AddAndExtend(*child, end, vertex);
+          break;
         }
       }
-    }
-    // else, do hash lookup
-    else {
+    } else { // else, do hash lookup
       const RuleTrie::Node *child = node.GetChild(terminal);
       if (child != NULL) {
         AddAndExtend(*child, end, vertex);
@@ -122,7 +118,8 @@ void RecursiveCYKPlusParser<Callback>::GetTerminalExtension(
   }
 }
 
-// if a (partial) rule matches, add it to list completed rules (if non-unary and non-empty), and try find expansions that have this partial rule as prefix.
+// If a (partial) rule matches, pass it to the callback (if non-unary and
+// non-empty), and try to find expansions that have this partial rule as prefix.
 template<typename Callback>
 void RecursiveCYKPlusParser<Callback>::AddAndExtend(
     const RuleTrie::Node &node,
@@ -131,15 +128,15 @@ void RecursiveCYKPlusParser<Callback>::AddAndExtend(
   // FIXME Sort out const-ness.
   m_hyperedge.tail.push_back(const_cast<PVertex *>(&vertex));
 
-  // add target phrase collection (except if rule is empty or unary)
+  // Add target phrase collection (except if rule is empty or unary).
   const TargetPhraseCollection &tpc = node.GetTargetPhraseCollection();
   if (!tpc.IsEmpty() && !IsNonLexicalUnary(m_hyperedge)) {
     m_hyperedge.translations = &tpc;
     (*m_callback)(m_hyperedge, end);
   }
 
-  // get all further extensions of rule (until reaching end of sentence or
-  // max-chart-span)
+  // Get all further extensions of rule (until reaching end of sentence or
+  // max-chart-span).
   if (end < m_maxEnd) {
     if (!node.GetTerminalMap().empty()) {
       for (std::size_t newEndPos = end+1; newEndPos <= m_maxEnd; newEndPos++) {
@@ -147,9 +144,7 @@ void RecursiveCYKPlusParser<Callback>::AddAndExtend(
       }
     }
     if (!node.GetNonTerminalMap().empty()) {
-      for (std::size_t newEndPos = end+1; newEndPos <= m_maxEnd; newEndPos++) {
-        GetNonTerminalExtension(node, end+1, newEndPos);
-      }
+      GetNonTerminalExtensions(node, end+1, end+1, m_maxEnd);
     }
   }
 
