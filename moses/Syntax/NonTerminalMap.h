@@ -15,6 +15,11 @@ namespace Moses
 namespace Syntax
 {
 
+// Hybrid map/vector-based container for key-value pairs where the key is a
+// non-terminal Word.  The interface is like a (stripped-down) map type, with
+// the main differences being that:
+//   1. Find() is implemented using vector indexing to make it fast.
+//   2. Once a value has been inserted it can be modified but can't be removed.
 template<typename T>
 class NonTerminalMap
 {
@@ -39,7 +44,7 @@ class NonTerminalMap
 
   bool IsEmpty() const { return m_map.empty(); }
 
-  T *Insert(const Word &, const T &);
+  std::pair<Iterator, bool> Insert(const Word &, const T &);
 
   T *Find(const Word &w) const { return m_vec[w[0]->GetId()]; }
 
@@ -49,14 +54,17 @@ class NonTerminalMap
 };
 
 template<typename T>
-T *NonTerminalMap<T>::Insert(const Word &key, const T &value)
+std::pair<typename NonTerminalMap<T>::Iterator, bool> NonTerminalMap<T>::Insert(
+    const Word &key, const T &value)
 {
   std::pair<typename Map::iterator, bool> result =
       m_map.insert(typename Map::value_type(key, value));
-  T *p = &(result.first->second);
-  std::size_t i = key[0]->GetId();
-  m_vec[i] = p;
-  return p;
+  if (result.second) {
+    T *p = &(result.first->second);
+    std::size_t i = key[0]->GetId();
+    m_vec[i] = p;
+  }
+  return result;
 }
 
 }  // namespace Syntax

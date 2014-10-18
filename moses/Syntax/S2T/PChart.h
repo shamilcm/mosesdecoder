@@ -57,11 +57,12 @@ class PChart
           cell.terminalVertices.insert(x);
       return ret.first->second;
     }
-    PVertex *p = cell.nonTerminalVertices.Insert(v.symbol, v);
-    if (m_compressed) {
-      // TODO
+    std::pair<Cell::NMap::Iterator, bool> result =
+        cell.nonTerminalVertices.Insert(v.symbol, v);
+    if (result.second && m_compressed) {
+      // TODO Update m_compressed
     }
-    return *p;
+    return result.first->second;
   }
 
   const CompressedRow &GetCompressedRow(std::size_t start) const {

@@ -234,12 +234,11 @@ void Manager<Parser>::Decode()
            ++p) {
         const Word &category = p->first;
         const std::vector<SHyperedge*> &buffer = p->second;
-        // FIXME
-        SVertexBeam *beam = scell.nonTerminalBeams.Find(category);
-        if (!beam) {
-          beam = scell.nonTerminalBeams.Insert(category, SVertexBeam());
-        }
-        RecombineAndSort(buffer, *beam);
+        std::pair<SChart::Cell::NMap::Iterator, bool> ret =
+            scell.nonTerminalBeams.Insert(category, SVertexBeam());
+        assert(ret.second);
+        SVertexBeam &beam = ret.first->second;
+        RecombineAndSort(buffer, beam);
       }
 
       // Prune beams.
