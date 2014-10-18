@@ -13,6 +13,12 @@ namespace Syntax
 namespace S2T
 {
 
+// Parser that implements the recursive variant of CYK+ from this paper:
+//
+//  Rico Sennrich
+//  "A CYK+ Variant for SCFG Decoding Without a Dot Chart"
+//  In proceedings of SSST-8 2014
+//
 template<typename Callback>
 class RecursiveCYKPlusParser : public Parser<Callback>
 {

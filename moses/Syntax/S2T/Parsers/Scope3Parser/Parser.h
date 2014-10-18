@@ -19,6 +19,12 @@ namespace Syntax
 namespace S2T
 {
 
+// Parser that implements the algorithm described in this paper:
+//
+//  Philip Williams and Philipp Koehn
+//  "GHKM Rule Extraction and Scope-3 Parsing in Moses"
+//  In proceedings of WMT 2012
+//
 template<typename Callback>
 class Scope3Parser : public Parser<Callback>
 {
