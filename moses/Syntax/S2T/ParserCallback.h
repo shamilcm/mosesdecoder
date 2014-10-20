@@ -47,7 +47,7 @@ class EagerParserCallback {
  public:
   EagerParserCallback(const SChart &schart, std::size_t ruleLimit)
       : m_schart(schart)
-      , m_containers(schart.cells.size(), Container(ruleLimit))
+      , m_containers(schart.GetWidth(), Container(ruleLimit))
       , m_prevStart(std::numeric_limits<std::size_t>::max()) {}
 
   void operator()(const PHyperedge &hyperedge, std::size_t end) {

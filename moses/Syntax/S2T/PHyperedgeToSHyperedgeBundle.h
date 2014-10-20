@@ -25,7 +25,7 @@ void PHyperedgeToSHyperedgeBundle(const PHyperedge &hyperedge,
     std::size_t spanStart = v->span.GetStartPos();
     std::size_t spanEnd = v->span.GetEndPos();
     const Word &symbol = v->symbol;
-    const SChart::Cell &cell = schart.cells[spanStart][spanEnd];
+    const SChart::Cell &cell = schart.GetCell(spanStart, spanEnd);
     const SVertexBeam *beam = 0;
     if (symbol.IsNonTerminal()) {
       beam = cell.nonTerminalBeams.Find(symbol);

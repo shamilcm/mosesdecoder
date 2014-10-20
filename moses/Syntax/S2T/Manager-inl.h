@@ -29,39 +29,29 @@ template<typename Parser>
 Manager<Parser>::Manager(const InputType &source)
     : m_source(source)
     , m_pchart(source.GetSize(), Parser::RequiresCompressedChart())
+    , m_schart(source.GetSize())
 {
 }
 
 template<typename Parser>
-void Manager<Parser>::InitializePChart(PChart &pchart)
+void Manager<Parser>::InitializeCharts()
 {
-  // Insert PVertex objects for source words
-  for (std::size_t i = 0; i < m_source.GetSize(); ++i) {
-    PVertex v(WordsRange(i,i), m_source.GetWord(i));
-    m_pchart.AddVertex(v);
-  }
-}
-
-template<typename Parser>
-void Manager<Parser>::InitializeSChart(const PChart &pchart, SChart &schart)
-{
-  // Create cells.
-  schart.cells.resize(m_source.GetSize());
-  for (std::size_t i = 0; i < m_source.GetSize(); ++i) {
-    schart.cells[i].resize(m_source.GetSize());
-  }
-  // Insert SVertex objects for source words
+  // Create a PVertex object and a SVertex object for each source word.
   for (std::size_t i = 0; i < m_source.GetSize(); ++i) {
     const Word &terminal = m_source.GetWord(i);
+
+    // PVertex
+    PVertex tmp(WordsRange(i,i), m_source.GetWord(i));
+    PVertex &pvertex = m_pchart.AddVertex(tmp);
+
+    // SVertex
     boost::shared_ptr<SVertex> v(new SVertex());
     v->best = 0;
-    const PChart::Cell::TMap &pmap = pchart.GetCell(i,i).terminalVertices;
-    PChart::Cell::TMap::const_iterator p = pmap.find(terminal);
-    assert(p != pmap.end());
-    v->pvertex = &(p->second);
+    v->pvertex = &pvertex;
+    SChart::Cell &scell = m_schart.GetCell(i,i);
     SVertexBeam beam(1, v);
     SChart::Cell::TMap::value_type x(terminal, beam);
-    schart.cells[i][i].terminalBeams.insert(x);
+    scell.terminalBeams.insert(x);
   }
 }
 
@@ -172,9 +162,8 @@ void Manager<Parser>::Decode()
   const std::size_t ruleLimit = staticData.GetRuleLimit();
   const std::size_t beamLimit = staticData.GetMaxHypoStackSize();
 
-  // Initialise PChart and SChart
-  InitializePChart(m_pchart);
-  InitializeSChart(m_pchart, m_schart);
+  // Initialise the PChart and SChart.
+  InitializeCharts();
 
   // Initialize the parsers.
   InitializeParsers(m_pchart, ruleLimit);
@@ -189,7 +178,7 @@ void Manager<Parser>::Decode()
       std::size_t end = start + width - 1;
 
       //PChart::Cell &pcell = m_pchart.GetCell(start, end);
-      SChart::Cell &scell = m_schart.cells[start][end];
+      SChart::Cell &scell = m_schart.GetCell(start, end);
 
       WordsRange range(start, end);
 
@@ -263,8 +252,8 @@ void Manager<Parser>::Decode()
 template<typename Parser>
 const SHyperedge *Manager<Parser>::GetBestSHyperedge() const
 {
-  const SChart::Cell::NMap &beams =
-      m_schart.cells[0][m_source.GetSize()-1].nonTerminalBeams;
+  const SChart::Cell &cell = m_schart.GetCell(0, m_source.GetSize()-1);
+  const SChart::Cell::NMap &beams = cell.nonTerminalBeams;
   if (beams.Size() == 0) {
     return 0;
   }
@@ -285,8 +274,8 @@ void Manager<Parser>::ExtractKBest(
   }
 
   // Get the top-level SVertex beam.
-  const SChart::Cell::NMap &beams =
-      m_schart.cells[0][m_source.GetSize()-1].nonTerminalBeams;
+  const SChart::Cell &cell = m_schart.GetCell(0, m_source.GetSize()-1);
+  const SChart::Cell::NMap &beams = cell.nonTerminalBeams;
   if (beams.Size() == 0) {
     return;
   }

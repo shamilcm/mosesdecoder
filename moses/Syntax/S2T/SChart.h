@@ -17,8 +17,9 @@ namespace Syntax
 namespace S2T
 {
 
-struct SChart
+class SChart
 {
+ public:
   struct Cell
   {
     typedef boost::unordered_map<Word, SVertexBeam, SymbolHasher,
@@ -27,7 +28,21 @@ struct SChart
     TMap terminalBeams;
     NMap nonTerminalBeams;
   };
-  std::vector<std::vector<Cell> > cells;
+
+  SChart(std::size_t width);
+
+  std::size_t GetWidth() const { return m_cells.size(); }
+
+  const Cell &GetCell(std::size_t start, std::size_t end) const {
+    return m_cells[start][end];
+  }
+
+  Cell &GetCell(std::size_t start, std::size_t end) {
+    return m_cells[start][end];
+  }
+
+ private:
+  std::vector<std::vector<Cell> > m_cells;
 };
 
 }  // S2T

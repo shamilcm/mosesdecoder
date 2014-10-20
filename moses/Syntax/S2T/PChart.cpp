@@ -11,9 +11,9 @@ namespace S2T
 
 PChart::PChart(std::size_t width, bool maintainCompressedChart)
 {
-  cells.resize(width);
+  m_cells.resize(width);
   for (std::size_t i = 0; i < width; ++i) {
-    cells[i].resize(width);
+    m_cells[i].resize(width);
   }
   if (maintainCompressedChart) {
     m_compressedChart = new CompressedChart(width);

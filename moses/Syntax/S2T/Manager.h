@@ -46,8 +46,7 @@ class Manager
  private:
   void FindOovs(const PChart &, std::set<Word> &, std::size_t);
 
-  void InitializePChart(PChart &);
-  void InitializeSChart(const PChart &, SChart &);
+  void InitializeCharts();
 
   void InitializeParsers(PChart &, std::size_t);
 

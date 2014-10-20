@@ -42,17 +42,17 @@ class PChart
 
   ~PChart();
 
-  std::size_t GetWidth() const { return cells.size(); }
+  std::size_t GetWidth() const { return m_cells.size(); }
 
   const Cell &GetCell(std::size_t start, std::size_t end) const {
-    return cells[start][end];
+    return m_cells[start][end];
   }
 
   // Insert the given PVertex and return a reference to the inserted object.
   PVertex &AddVertex(const PVertex &v) {
     const std::size_t start = v.span.GetStartPos();
     const std::size_t end = v.span.GetEndPos();
-    Cell &cell = cells[start][end];
+    Cell &cell = m_cells[start][end];
     // If v is a terminal vertex add it to the cell's terminalVertices map.
     if (!v.symbol.IsNonTerminal()) {
       Cell::TMap::value_type x(v.symbol, v);
@@ -80,7 +80,7 @@ class PChart
  private:
   typedef std::vector<CompressedMatrix> CompressedChart;
 
-  std::vector<std::vector<Cell> > cells;
+  std::vector<std::vector<Cell> > m_cells;
   CompressedChart *m_compressedChart;
 };
 
