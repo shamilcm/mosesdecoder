@@ -11,11 +11,11 @@ namespace Moses
 {
 
 OpSequenceModel::OpSequenceModel(const std::string &line)
-  :StatefulFeatureFunction(5, line )
+  :StatefulFeatureFunction(1, line )
 {
   sFactor = 0;
   tFactor = 0;
-  numFeatures = 5;
+  numFeatures = 1;
   ReadParameters();
   load_method = util::READ;
 }
