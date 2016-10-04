@@ -23,6 +23,7 @@
 #include "moses/FF/TargetWordInsertionFeature.h"
 #include "moses/FF/SourceWordDeletionFeature.h"
 #include "moses/FF/GlobalLexicalModel.h"
+#include "moses/FF/GGLM.h"
 #include "moses/FF/GlobalLexicalModelUnlimited.h"
 #include "moses/FF/Model1Feature.h"
 #include "moses/FF/UnknownWordPenaltyProducer.h"
@@ -244,6 +245,7 @@ FeatureRegistry::FeatureRegistry()
   MOSES_FNAME(ProbingPT);
   MOSES_FNAME(PhraseDictionaryMemoryPerSentence);
   MOSES_FNAME2("RuleTable", Syntax::RuleTableFF);
+  MOSES_FNAME2("GGLM",GenericGlobalLexicalModel);
   MOSES_FNAME2("SyntaxInputWeight", Syntax::InputWeightFF);
 
   MOSES_FNAME(GlobalLexicalModel);
