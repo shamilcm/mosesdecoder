@@ -87,11 +87,13 @@ my $continue = 0; # should we try to continue from the last saved step?
 my $skip_decoder = 0; # and should we skip the first decoder run (assuming we got interrupted during mert)
 my $___FILTER_PHRASE_TABLE = 1; # filter phrase table
 my $___PREDICTABLE_SEEDS = 0;
+my $___SEED_MULTIPLIER = 1000;
 my $___START_WITH_HISTORIC_BESTS = 0; # use best settings from all previous iterations as starting points [Foster&Kuhn,2009]
 my $___RANDOM_DIRECTIONS = 0; # search in random directions only
 my $___NUM_RANDOM_DIRECTIONS = 0; # number of random directions, also works with default optimizer [Cer&al.,2008]
 my $___RANDOM_RESTARTS = 20;
 my $___RETURN_BEST_DEV = 0; # return the best weights according to dev, not the last
+my $___DEPREPROCESS = 0; # set to true to detruecase, detokenize and tokenize using PTB
 
 # Flags related to PRO (Hopkins & May, 2011)
 my $___PAIRWISE_RANKED_OPTIMIZER = 0; # flag to enable PRO.
@@ -232,7 +234,9 @@ GetOptions(
   "promix-table=s" => \@__PROMIX_TABLES,
   "threads=i" => \$__THREADS,
   "spe-symal=s" => \$___DEV_SYMAL,
-  "multi-moses" => \$___USE_MULTI_MOSES
+  "multi-moses" => \$___USE_MULTI_MOSES,
+  "depreprocess-nbest" => \$___DEPREPROCESS,    #to depreprocess nbest-list
+  "seed-multiplier=i" => \$___SEED_MULTIPLIER, # number of random restarts
 ) or exit(1);
 
 # the 4 required parameters can be supplied on the command line directly
@@ -289,6 +293,7 @@ Options:
   --random-restarts=INT  ... number of random restarts (default: 20)
   --predictable-seeds    ... provide predictable seeds to mert so that random
                              restarts are the same on every run
+  --seed-multiplier 	... only if predictable-seeds is enabled. (default value is 1000)
   --range=tm:0..1,-1..1  ... specify min and max value for some features
                              --range can be repeated as needed.
                              The order of the various --range specifications
@@ -333,6 +338,7 @@ Options:
   --multi-moses          ... Use multiple instances of moses instead of threads for decoding
                              (Use with --decoder-flags='-threads N' to get N instances, each of
                               which uses a single thread (overrides threads in moses.ini))
+  --depreprocess          ... Depreprocess the n-best list using the tokenizer/depreprocess_nbest.sh script for custom evaluation
 ";
   exit 1;
 }
@@ -803,6 +809,7 @@ while (1) {
     close $denseout;
   }
 
+#@shamil's edits Here
   # skip running the decoder if the user wanted
   if (! $skip_decoder) {
     print "($run) run decoder to produce n-best lists\n";
@@ -820,6 +827,10 @@ while (1) {
       $lsamp_file      = "$lsamp_file.gz";
       $nbest_file      = "$combined_file";
     }
+	if ($___DEPREPROCESS){
+		safesystem("$SCRIPTS_ROOTDIR/tokenizer/depreprocess_nbest.sh $nbest_file > $nbest_file.deprepro") or die "Failed to depreprocess!";
+		$nbest_file = "$nbest_file.deprepro";
+	}
     safesystem("gzip -f $nbest_file") or die "Failed to gzip run*out" unless $___HG_MIRA;
     $nbest_file = $nbest_file.".gz";
   } else {
@@ -871,7 +882,7 @@ while (1) {
   my $mert_settings = " -n $___RANDOM_RESTARTS";
   my $seed_settings = "";
   if ($___PREDICTABLE_SEEDS) {
-    my $seed = $run * 1000;
+    my $seed = $run * $___SEED_MULTIPLIER;
     $seed_settings .= " -r $seed";
   }
   $mert_settings .= $seed_settings;
